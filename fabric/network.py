@@ -565,7 +565,12 @@ def connect(user, host, port, cache, seek_gateway=True):
         except (EOFError, TypeError):
             # Print a newline (in case user was sitting at prompt)
             print('')
-            sys.exit(0)
+            # In this fork, exit non-zero instead - we only use fabric for automated mechanisms, where
+            # Ctrl-D / Ctrl-C is never intentional and should not be successful. This affects running inside
+            # a docker container without tty - when keys are not present, fabric will prompt for password,
+            # which (for unknown reasons) triggers an EOFError and exit(0). We now exit(1) so our scripts
+            # abort correctly.
+            sys.exit(1)
         # Handle DNS error / name lookup failure
         except socket.gaierror, e:
             raise NetworkError('Name lookup failed for %s' % host, e)
